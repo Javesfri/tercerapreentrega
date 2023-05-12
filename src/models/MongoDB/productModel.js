@@ -1,9 +1,10 @@
 import mongoose,{ Schema, model } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2"
+
 let productModel;
 
 if(mongoose.models["products"]){
-    userModel = mongoose.models("products")
+    productModel = mongoose.models("products")
 }
 else{
     const productSchema = new mongoose.Schema({

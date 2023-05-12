@@ -21,7 +21,7 @@ else{
 
     })
 
-    cartModel= mongoose.model("carts",userSchema)
+    cartModel= mongoose.model("carts",cartSchema)
 }
 
 export default cartModel
