@@ -1,15 +1,17 @@
-import productModel from "../models/MongoDB/productModel.js";
+
 import {
   getPagProducts,
   productAdd,
   productDelete,
   productUpdate,
+  getAllProducts,
+  getProductById,
 } from "../services/productService.js";
 
-export const getProducts = async (res, req) => {
-  const mail = req.session.user.email;
+export const getProductsPag = async (req, res) => {
+  const mail =req.session.user.email;
   const rol = req.session.user.rol;
-  console.log(req.session);
+  const cart=req.session.user.idCart
   const category = req.query.category;
   const sort = req.query.sort;
   const page = parseInt(req.query.page) || 1;
@@ -19,10 +21,12 @@ export const getProducts = async (res, req) => {
   const total = [];
   products.map((prod) => {
     const newProd = { ...prod._doc };
-    const { title, description, price, code, category, thumbnail, stock } = {
+    const {_id, title, description, price, code, category, thumbnail, stock } = {
       ...newProd,
     };
     total.push({
+      id:_id,
+      idCart:cart,
       title: title,
       description: description,
       price: price,
@@ -42,31 +46,34 @@ export const getProducts = async (res, req) => {
     pages: totalPages,
     mail: mail,
     rol: rol,
-  });
+    cart:cart,
+  });}
+
+
+export const productGetById = async (req, res) => {
+  let product = await getProductById(req.params.pid);
+  res.send(product);
 };
 
-export const addProduct = async (res, req) => {
+export const addProduct = async (req, res) => {
   let newProduct = productAdd(req.body);
   res.send(newProduct);
 };
 
-export const deleteProduct = async (res, req) => {
-    await productManager.deleteElement(req.params.id);
-    res.send(await getProducts());
+export const deleteProduct = async (req, res) => {
+  await productDelete(req.params.id);
+  res.send(await getProducts());
 };
 
-export const updateProduct = async (res, req) => {
-  let updateProduct = await productUpdate(
-    req.params.id,
-    req.body
-  );
-  res.send(updateProduct)
+export const updateProduct = async (req, res) => {
+  let product = await productUpdate(req.params.id, req.body);
+  res.send(product);
 };
 
-export const productsGet = async () => {
-     try {
-         return await productModel.find()
-     } catch (error) {
-         return error
-     }
- }
+export const getProducts = async () => {
+  try {
+    return await getAllProducts();
+  } catch (error) {
+    return error;
+  }
+};

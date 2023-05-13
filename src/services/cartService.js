@@ -1,28 +1,30 @@
 import cartModel from "../models/MongoDB/cartModel.js"
-import getProductById from "./productService.js"
+import {getProductById,productUpdate} from "./productService.js"
 
 export const addProductToCart = async (idCart,idProduct)=>{
-    if(await getProductById(idProduct)){
+    let product= await getProductById(idProduct)
+    if(await product && await product.stock >0){
         try{
             const cart=await cartModel.findById(idCart)
-            let index=await cart.products.findIndex(element => element.product==idProduct)
+            let index=await cart.products.findIndex(element => element.productId==idProduct)
             if(index !=-1){
                 cart.products[index].quantity+=1;
             }
             else{
                 await cart.products.push({  
-                    product:idProduct,
+                    productId:idProduct,
                     quantity: 1})
             } 
-            console.log(await cart) 
+            productUpdate(idProduct,{stock:product.stock-1})
             cart.save()
+            console.log(`${product.title} agregado al carrito!`)
             return cart
         }catch(error){
             console.log(error)
             return error
         }
     }
-    return("No se encontro El producto")
+    console.log("no hay stock")
 }
 
 export const deleteProductFromCart = async (idCart, id)=>{
@@ -83,7 +85,8 @@ export const updateProductFromCart = async (idCart,idProduct,quantity)=>{
 }
 export const createCart = async ()=>{
     try{
-        return await cartModel.create({})
+        let cart= await cartModel.create({})
+        return(cart)
     }catch(error){
         console.log(error)
         return error

@@ -1,8 +1,84 @@
-import passport from "passport"
-import { strategyJWT } from "./Strategies/jwtStrategy.js"
+import local from 'passport-local'
+import passport from 'passport'
+import {findUserByEmail, findUserById,createUser } from "../services/userService.js"
+import { createCart } from "../services/cartService.js"
+import { createHash, validatePassword } from '../utils/bcrypt.js'
 
-const initializePassport = () =>{
-    passport.use(strategyJWT)
+//Passport se va a manejar como si fuera un middleware 
+const LocalStrategy = local.Strategy //Estretagia local de autenticacion
+//Passport define done como si fuera un res.status()
+
+
+const initializePassport = () => {
+
+    //Ruta a implementar
+    passport.use('register', new LocalStrategy(
+        { passReqToCallback: true, usernameField: 'email' }, async (req, username, password, done) => {
+            //Validar y crear Usuario
+            const bodyReq = {...req.body}
+            try {
+                const user = await findUserByEmail(username) //Username = email
+
+                if (user) { //Usario existe
+                    console.log("Usuario Existente")
+                    return done(null, false) //null que no hubo errores y false que no se creo el usuario
+
+                }
+
+                const passwordHash = createHash(bodyReq.password)
+                bodyReq.password=passwordHash
+                let userCart= await createCart()
+                bodyReq.idCart=userCart._id
+                const result = await createUser(bodyReq)
+                console.log(await userCart["_id"] )
+                console.log("User Creado")
+                return done(null, result) //Usuario creado correctamente
+
+            } catch (error) {
+                return done("Error al obtener el usario "+error)
+            }
+
+        }
+
+    ))
+
+    passport.use('login', new LocalStrategy({ usernameField: 'email' }, async (username, password, done) => {
+        
+        try {
+            const user = await findUserByEmail(username)
+            if (!user) { //Usuario no encontrado
+                console.log("User no encontrado")
+                return done(null, false)
+            }
+            if (validatePassword(password, user.password)) { //Usuario y contraseña validos
+                console.log("Sesion Iniciada")
+                return done(null, user)
+            }
+            console.log("Constraseña invalida")
+            return done(null, false) //Contraseña no valida
+
+        } catch (error) {
+            return done(error)
+        }
+    }))
+
+    //Iniciar la session del usuario
+    passport.serializeUser(async (user, done) => {
+        let userId = user._id
+        console.log("HOLA")
+        if (Array.isArray(user)) {
+            userId= user[0]._id;
+        }
+        done(null, userId)
+    })
+
+    //Eliminar la sesion del usuario
+    passport.deserializeUser(async (id, done) => {
+        const user = await findUserById(id)
+        done(null, user)
+
+    })
+
 }
 
-export default initializePassport
+export default initializePassport;

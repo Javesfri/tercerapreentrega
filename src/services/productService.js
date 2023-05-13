@@ -53,3 +53,11 @@ export const productUpdate = async (id, info) => {
     return error;
   }
 };
+
+export const getAllProducts = async () => {
+  try {
+    return await productModel.find();
+  } catch (error) {
+    return error;
+  }
+};
