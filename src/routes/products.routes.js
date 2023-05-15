@@ -7,17 +7,17 @@ import {
   getProductsPag
 } from "../controllers/product.controller.js";
 import { Router } from "express";
-import { isAuthenticated } from "../middlewares/authentication.js";
+import { isAuthenticated,roleVerification } from "../middlewares/authentication.js";
 const routerProduct = Router();
 
 routerProduct.get("/",isAuthenticated, getProductsPag);
 
-routerProduct.get("/:pid", productGetById);
+routerProduct.get("/:pid",isAuthenticated, productGetById);
 
-routerProduct.post("/", addProduct);
+routerProduct.post("/",isAuthenticated,roleVerification("Admin"), addProduct);
 
-routerProduct.delete("/:id", deleteProduct);
+routerProduct.delete("/:id",isAuthenticated,roleVerification("Admin"), deleteProduct);
 
-routerProduct.put("/:id", updateProduct);
+routerProduct.put("/:id",isAuthenticated,roleVerification("Admin"), updateProduct);
 
 export default routerProduct;

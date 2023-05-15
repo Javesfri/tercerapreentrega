@@ -35,3 +35,10 @@ export const destroySession = (req, res) => {
   console.log("Sesion finalizada " + req.session);
   res.redirect("http://localhost:8080/api/session/login/");
 };
+
+export const currentUser = (req, res) => {
+  const {email,first_name,last_name}={...req.session.user}
+  res.render("current",{email,first_name,last_name})
+};
+
+

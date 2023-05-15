@@ -3,6 +3,7 @@ import passport from 'passport'
 import {findUserByEmail, findUserById,createUser } from "../services/userService.js"
 import { createCart } from "../services/cartService.js"
 import { createHash, validatePassword } from '../utils/bcrypt.js'
+import "dotenv/config.js"
 
 //Passport se va a manejar como si fuera un middleware 
 const LocalStrategy = local.Strategy //Estretagia local de autenticacion
@@ -24,13 +25,11 @@ const initializePassport = () => {
                     return done(null, false) //null que no hubo errores y false que no se creo el usuario
 
                 }
-
                 const passwordHash = createHash(bodyReq.password)
                 bodyReq.password=passwordHash
                 let userCart= await createCart()
                 bodyReq.idCart=userCart._id
                 const result = await createUser(bodyReq)
-                console.log(await userCart["_id"] )
                 console.log("User Creado")
                 return done(null, result) //Usuario creado correctamente
 
@@ -45,9 +44,23 @@ const initializePassport = () => {
     passport.use('login', new LocalStrategy({ usernameField: 'email' }, async (username, password, done) => {
         
         try {
-            const user = await findUserByEmail(username)
+            let user = await findUserByEmail(username)
             if (!user) { //Usuario no encontrado
                 console.log("User no encontrado")
+                const adminUser=process.env.ADMIN_USER
+                const adminPass=process.env.ADMIN_PASS
+                if(username==adminUser  && password==adminPass){
+                    user={
+                        _id:process.env.ADMIN_ID,
+                        first_name:"ADMINCOD",
+                        last_name: "ADMINAPELLIDO",
+                        email:adminUser,
+                        edad:69,
+                        rol:"Admin",
+                        idCart:"22",
+                    }
+                    return  done(null,user)
+                }
                 return done(null, false)
             }
             if (validatePassword(password, user.password)) { //Usuario y contraseña validos
@@ -68,7 +81,6 @@ const initializePassport = () => {
         if (Array.isArray(user)) {
             userId= user[0]._id;
         }
-        console.log(userId)
         done(null, userId)
     })
 

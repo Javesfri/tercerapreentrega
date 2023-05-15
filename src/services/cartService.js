@@ -30,7 +30,6 @@ export const deleteProductFromCart = async (idCart, id)=>{
     if(getProductById(id)){
         try{
             const cart=await cartModel.findById(idCart)
-            console.log(await cart.products)
             await cart.products.remove({productId:id})
             await cart.save()
             
