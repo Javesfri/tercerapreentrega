@@ -1,4 +1,5 @@
 export const isLogin=(req,res,next) =>{
+    
     if(req.session.user){
         return res.redirect("http://localhost:8080/api/products/")
     }

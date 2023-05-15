@@ -65,10 +65,10 @@ const initializePassport = () => {
     //Iniciar la session del usuario
     passport.serializeUser(async (user, done) => {
         let userId = user._id
-        console.log("HOLA")
         if (Array.isArray(user)) {
             userId= user[0]._id;
         }
+        console.log(userId)
         done(null, userId)
     })
 

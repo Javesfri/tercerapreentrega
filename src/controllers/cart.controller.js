@@ -7,6 +7,8 @@ import {
   createCart,
   getAllCarts,
 } from "../services/cartService.js";
+import {getProductById,productUpdate} from "../services/productService.js"
+import { generateTicket } from "../services/ticketService.js";
 
 export const cartCreate = async (req, res) => {
   const newCart = await createCart();
@@ -21,23 +23,15 @@ export const getCarts = async (req, res) => {
 export const getProductsCart = async (req, res) => {
   const cart = await getProductsFromCart(req.params.cid);
   const listProducts = await cart.products;
-  console.log(await listProducts);
-  const total = [];
-  listProducts.map((prod) => {
-    const newProd = { ...prod.product._doc };
-    console.log(newProd);
-    const { title, description, price, code, category, thumbnail } = newProd;
-    total.push({
-      title: title,
-      description: description,
-      price: price,
-      code: code,
-      category: category,
-      quantity: prod.quantity,
-      imagen: thumbnail,
-    });
-  });
-  res.send(total);
+  const products=[]
+  listProducts.map(prod =>{
+    let newProduct={...prod.productId._doc}
+    newProduct.quantity=prod.quantity
+    newProduct.cartId=req.params.cid
+    //console.log(newProduct)
+    products.push(newProduct)
+  })
+  res.render("cart", {products,cartId:req.params.cid});
 };
 
 export const AddProductCart = async (req, res) => {
@@ -46,7 +40,7 @@ export const AddProductCart = async (req, res) => {
 };
 
 export const deleteProductCart = async (req, res) => {
-  const deleteProductOfCart = await deleteProductFromCart(
+   const deleteProductOfCart = await deleteProductFromCart(
     req.params.cid,
     req.params.pid
   );
@@ -66,3 +60,46 @@ export const updateProductCart = async (req, res) => {
   );
   res.send(updateProduct);
 };
+
+export const purchaseCart = async (req,res) =>{
+  const cartID=req.params.cid
+  const cart = await getProductsFromCart(req.params.cid)
+  const products= cart.products
+  //console.log(products)
+  let ticketData
+  console.log("Productos: "+products.length)
+  if(products.length > 0){
+    let amount=0;
+    let idsProductNoStock=[]
+    await Promise.all(products.map(async prod =>{
+      // console.log(prod.productId)
+       let product =await getProductById(prod.productId._id)
+       if(prod.quantity <= product.stock){
+         await productUpdate(prod.productId._id,{stock:product.stock-prod.quantity});
+         amount+=prod.productId.price*prod.quantity;
+         console.log(prod.productId._id)
+         await deleteProductFromCart(cartID,prod.productId._id)
+       }else{
+         idsProductNoStock.push(prod.productId)
+       }
+ 
+     })) 
+    console.log(amount)
+    if( amount >0){
+      ticketData =await generateTicket(amount,req.session.user.email)
+      console.log("Compra Realizada con Exito")
+      res.render("purchase",{hora:ticketData.purchase_datetime,total:ticketData.amount,comprador:ticketData.purchaser})
+
+    }else{
+      console.log("No Hay ningun producto seleccionado en stock. Sera redirigido a la lista de productos")
+      res.redirect("/api/products")
+      return
+      
+    }
+  }else{
+    console.log("No Hay productos En El Carrito")
+    res.redirect("/api/products")
+    return
+  }
+ 
+}

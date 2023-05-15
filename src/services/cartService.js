@@ -15,7 +15,6 @@ export const addProductToCart = async (idCart,idProduct)=>{
                     productId:idProduct,
                     quantity: 1})
             } 
-            productUpdate(idProduct,{stock:product.stock-1})
             cart.save()
             console.log(`${product.title} agregado al carrito!`)
             return cart
@@ -28,11 +27,13 @@ export const addProductToCart = async (idCart,idProduct)=>{
 }
 
 export const deleteProductFromCart = async (idCart, id)=>{
-    if(await getProductById(id)){
+    if(getProductById(id)){
         try{
             const cart=await cartModel.findById(idCart)
-            await cart.products.remove(id)
+            console.log(await cart.products)
+            await cart.products.remove({productId:id})
             await cart.save()
+            
             return (cart)
         }catch(error){
             console.log(error)
@@ -40,6 +41,7 @@ export const deleteProductFromCart = async (idCart, id)=>{
         }
     }
     return("No se encontro El producto")
+
 }
 
 export const deleteAllProductsFromCart = async (idCart)=>{
@@ -60,7 +62,7 @@ export const deleteAllProductsFromCart = async (idCart)=>{
 export const getProductsFromCart = async (idCart)=>{
     try{
         const cart= await cartModel.findById(idCart)
-        let cartTotal=await cart.populate('products.product')
+        let cartTotal=await cart.populate('products.productId')
         return  cartTotal
     }catch(error){
         console.log(error)
@@ -102,4 +104,22 @@ export const getAllCarts = async ()=>{
         return error
     }
         
+}
+
+
+export const getProductsToPurchase = async (idCart)=>{
+    try{
+        const cartProducts= await getProductsFromCart(idCart)
+        const products= cartProducts.products
+        if(products.length >0){
+            return
+        }else{  
+            console.log("No hay Productos En el Carrito")
+            return null
+        }
+    }catch(error){
+        return(error)
+    }
+
+
 }

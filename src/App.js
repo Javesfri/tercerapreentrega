@@ -40,7 +40,7 @@ app.use(session({
   store: MongoStore.create({
       mongoUrl: process.env.URLMONGODB,
       mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
-      ttl: 90
+      ttl: 180
   }),
   secret: process.env.SESSION_SECRET,
   resave: true,

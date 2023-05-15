@@ -7,22 +7,26 @@ import {
   deleteProductCart,
   deleteAllProductsCart,
   updateProductCart,
+  purchaseCart
 } from "../controllers/cart.controller.js";
-
+import { isAuthenticated } from "../middlewares/authentication.js";
 const routerCart = Router();
 
-routerCart.post("/", cartCreate);
+routerCart.post("/",isAuthenticated, cartCreate);
 
-routerCart.get("/", getCarts);
+routerCart.get("/",isAuthenticated, getCarts);
 
-routerCart.get("/:cid", getProductsCart);
+routerCart.get("/:cid",isAuthenticated, getProductsCart);
 
-routerCart.post("/:cid/products/:pid", AddProductCart);
+routerCart.post("/:cid/products/:pid",isAuthenticated, AddProductCart);
 
-routerCart.delete("/:cid/products/:pid", deleteProductCart);
+routerCart.delete("/:cid/products/:pid",isAuthenticated, deleteProductCart);
 
-routerCart.delete("/cid", deleteAllProductsCart);
+routerCart.delete("/:cid",isAuthenticated, deleteAllProductsCart);
 
-routerCart.put(":cid/products/:pid", updateProductCart);
+routerCart.put("/:cid/products/:pid",isAuthenticated, updateProductCart);
+
+routerCart.post("/:cid/purchase",isAuthenticated,purchaseCart)
+routerCart.get("/:cid/purchase",isAuthenticated)
 
 export default routerCart;

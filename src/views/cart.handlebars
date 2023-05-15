@@ -1,12 +1,14 @@
 <h1>CARRITO</h1>
-
-{{#each total}}
-    <li><strong>{{this.title}}</strong>
-        </li><img class="image-cart-list"style="width:100px;list-style-type:none;" src="{{this.imagen}}" ><li
-        ><ul><li
-        ><strong>Descripcion: </strong>{{this.description}}</li><li
-        ><strong>Precio: </strong>{{this.price}}</li>
-        <li><strong>Imagen: </strong>
-        <strong>Code: </strong>{{this.code}}</li><li
-        ><strong>Cantidad: </strong>{{this.quantity}}</li></ul></li>
-  {{/each}}
+{{#each products}}
+  <div class="product">
+    <img src="{{this.thumbnail}}" alt="Product Image" />
+    <div class="product-info">
+      <h2 class="product-name">{{this.title}}</h2>
+      <p class="product-price">${{this.price}}</p>
+      <p class="product-quantity">Cantidad: {{this.quantity}}</p>
+</form>
+    </div>
+  </div>
+{{/each}}
+<form method="POST" action="http://localhost:8080/api/carts/{{cartId}}/purchase">
+<button type="submit">Pagar</button></form>
